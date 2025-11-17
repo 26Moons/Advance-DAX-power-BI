@@ -1,0 +1,175 @@
+Row Context vs Filter Context (Power BI / DAX)
+
+Think: Row = “current row” | Filter = “filtered view”
+
+1. Row Context (What it is)
+
+Row context happens when DAX evaluates a calculation row by row.
+
+It exists automatically when:
+
+You write a calculated column
+
+You iterate using X functions (e.g., SUMX, FILTER, AVERAGEX)
+
+Row Context = The DAX engine knows which row it is currently on.
+
+Row Context Example Table
+Student	Candies
+Jack	5
+Ria	2
+Chris	10
+Calculated Column Example (Row Context)
+Candies * 2
+
+
+Internally DAX thinks like this:
+
+For Jack → 5 * 2 = 10
+
+For Ria → 2 * 2 = 4
+
+For Chris → 10 * 2 = 20
+
+Each row "knows" its own value.
+
+DAX Explicit Row Context Example
+TotalTimesTwo = SUMX( Students, Students[Candies] * 2 )
+
+
+This also loops row by row:
+
+Take Jack: (5 * 2)
+
+Take Ria: (2 * 2)
+
+Take Chris: (10 * 2)
+Then sum everything.
+
+Row Context Key Points
+
+Exists on calculated columns
+
+Exists in iterators (SUMX, AVERAGEX, FILTER)
+
+Automatically row-by-row
+
+Does not apply filters by itself
+
+2. Filter Context (What it is)
+
+Filter context is what slices of data are currently visible due to:
+
+Visual filters
+
+Page filters
+
+Report filters
+
+Slicers
+
+DAX filters (ex: CALCULATE)
+
+Filter Context = What portion of the data is included?
+
+Filter Context Example Visual
+
+If you put SUM(Candies) in a card visual → you get:
+
+5 + 2 + 10 = 17
+
+
+If you apply a filter = Student = “Jack”
+
+Only Jack is visible → 5
+
+
+If a slicer chooses Candies > 4:
+
+Jack (5)
+
+Chris (10)
+
+So SUM(Candies) becomes:
+
+5 + 10 = 15
+
+Filter Context Example in DAX
+Total Candies = SUM( Students[Candies] )
+
+Total Red Products =
+CALCULATE(
+    SUM(Sales[Units]),
+    Sales[Color] = "Red"
+)
+
+
+CALCULATE changes the filter on the data.
+
+Filter Context Key Points
+
+Comes from:
+
+Visuals
+
+Slicers
+
+Filters
+
+DAX functions
+
+Applies before formula logic
+
+Can be overridden or modified using CALCULATE
+
+Simple Analogy
+Row Context	Filter Context
+Like reading row-by-row in a spreadsheet	Like filtering a spreadsheet to only show some rows
+“For this Row…”	“Only these rows count…”
+Exists in Calculated Columns	Exists in Measures
+SUMX loops row by row	CALCULATE changes filters
+No filter change	Can change what's included
+Power BI Practical Example
+Row Context
+
+Calculated Column:
+
+Sales[Profit] = Sales[Revenue] - Sales[Cost]
+
+
+→ Works per row.
+No need to filter data.
+
+Filter Context
+
+Measure:
+
+Total Red Units =
+CALCULATE(
+    SUM(Sales[Units]),
+    Sales[Color] = "Red"
+)
+
+
+→ Slices the data to include only red products.
+
+MOST IMPORTANT RULE
+
+Row context does not automatically apply filters.
+To convert row context → filter context, we use:
+
+CALCULATE()
+
+Final Summary (Copy-Paste)
+
+Row Context = Current Row → Exists in Calculated Columns & Iterators (SUMX, FILTER).
+
+Filter Context = Current Filtered Data → Comes from Visuals, Slicers, Filters, CALCULATE.
+
+Row context is about looping rows.
+
+Filter context is about what data is included or excluded.
+
+Row context does not filter.
+
+Use CALCULATE to turn row context into filter context.
